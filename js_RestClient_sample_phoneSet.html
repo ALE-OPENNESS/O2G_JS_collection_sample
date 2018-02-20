@@ -1,0 +1,553 @@
+<html>
+<head>
+<script>
+ var serverIP;
+ var adminlogin;
+ var passwd;
+ var nodeId;
+ var subscriber;
+ var subscriberName;
+ var subscriberFirstName;
+ var alcUserId="";
+ var callRef="";
+ var protocol="";
+ var port="";
+function doAuthent()
+{
+ 
+  serverIP =  document.getElementById('ServerIP').value;
+  var listPort = document.getElementById('protocol');
+	protocol = listPort.options[ listPort.selectedIndex ].value;
+  port =  document.getElementById('port').value;
+  adminlogin =  document.getElementById('Adminlogin').value;
+  passwd =  document.getElementById('Password').value;
+ 
+	authRq = new XMLHttpRequest();
+	serverUrl = protocol+serverIP+":"+port+"/api/rest/"; 		
+ 
+	 authRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultAuthent").innerHTML = "returns " + this.status; 
+		 if (this.status === 200) {
+			document.getElementById("clickStartSession").style.visibility = "visible";
+			document.getElementById("resultSession").innerHTML = ""; 
+			document.getElementById("resultCloseSession").innerHTML = ""; 
+		}
+	  }
+	};
+  authRq.open("GET", serverUrl + "authenticate?version=1.0", true, adminlogin, passwd);
+	authRq.withCredentials = true;
+	authRq.send();		
+}
+function startSession() {
+	var sessionRq = new XMLHttpRequest();
+	var appliNameParams = {"applicationName":"myTestProgram"};
+
+    sessionRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultSession").innerHTML = "returns " + this.status;
+		 if (this.status === 200) {
+		 	document.getElementById("clickGetLogin").style.visibility = "visible";
+		 	document.getElementById("resultGetLogin").innerHTML = ""; 
+		 	/*document.getElementById("clickMSubscribe").style.visibility = "hidden";
+			document.getElementById("resultMsubscribtion").innerHTML = ""; */
+			document.getElementById("clickCloseSession").style.visibility = "visible";
+			document.getElementById("resultCloseSession").innerHTML = "";
+			//getListPbxs();
+		 } else if (this.status === 403) {
+		 	document.getElementById("clickGetLogin").style.visibility = "hidden";
+		 	document.getElementById("resultGetLogin").innerHTML = ""; 
+		 	/*document.getElementById("clickMSubscribe").style.visibility = "hidden";
+			document.getElementById("resultMsubscribtion").innerHTML = "";*/
+			document.getElementById("clickCloseSession").style.visibility = "visible";
+			document.getElementById("resultCloseSession").innerHTML = "";
+		 }
+	  }
+	}
+
+	sessionRq.open("POST", serverUrl + "1.0/sessions");
+	sessionRq.setRequestHeader('Content-Type', "application/json"); 
+	sessionRq.setRequestHeader('Accept', "*/*"); 
+	sessionRq.send(JSON.stringify(appliNameParams));
+}
+function getLoginList() {
+	var getLogin = new XMLHttpRequest();
+	
+
+    getLogin.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultGetLogin").innerHTML = "returns " + this.status;
+		 if (this.status === 200) {
+		 		document.getElementById("clickGetDevice").style.visibility = "visible";
+		 	  document.getElementById("resultGetDevice").innerHTML = ""; 
+		 	  
+		 		var jsonResponse = JSON.parse(this.responseText);
+		 		var nodeList = jsonResponse.loginNames;
+		 		if(	nodeList != undefined && nodeList.length >0)
+				{
+					var select =  document.getElementById('LoginList');
+					select.innerHTML = "";
+								
+					for(var i in nodeList)
+						{
+							  var opt = document.createElement('option');
+    						opt.value = nodeList[i];
+    						opt.innerHTML = nodeList[i];
+    						select.appendChild(opt);
+    				}
+    			var select2 =  document.getElementById('LoginList2');
+					select2.innerHTML = "";
+								
+					for(var i in nodeList)
+						{
+							  var opt = document.createElement('option');
+    						opt.value = nodeList[i];
+    						opt.innerHTML = nodeList[i];
+    						select2.appendChild(opt);
+    						
+						}
+				}
+		 } else if (this.status === 403) {
+		 			document.getElementById("clickGetDevice").style.visibility = "hidden";
+		 	    document.getElementById("resultGetDevice").innerHTML = ""; 
+		 }
+	  }
+	}
+ 
+	getLogin.open("GET", serverUrl + "1.0/logins");
+	getLogin.setRequestHeader('Content-Type', "application/json"); 
+	getLogin.setRequestHeader('Accept', "*/*"); 
+  getLogin.send();
+}
+function getDeviceList() {
+	var getDevice = new XMLHttpRequest();
+	
+
+    getDevice.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultGetDevice").innerHTML = "returns " + this.status;
+		 if (this.status === 200) {
+		 		document.getElementById("clickMakeCall").style.visibility = "visible";
+		 	  document.getElementById("resultmakeCall").innerHTML = ""; 
+		 		var jsonResponse = JSON.parse(this.responseText);
+		 		var nodeList = jsonResponse.devices;
+		 		if(	nodeList != undefined && nodeList.length >0)
+				{
+					var select =  document.getElementById('DeviceList');
+					for (var i=0; i<select.length; i++){
+					  
+					     select.remove(i);
+					}
+					for(var i in nodeList)
+						{
+							  var opt = document.createElement('option');
+    						opt.value = nodeList[i].id;
+    						opt.innerHTML = nodeList[i].id +" ("+nodeList[i].subType+")";
+    						select.appendChild(opt);
+						}
+				}
+		 } else if (this.status === 403) {
+		 			document.getElementById("clickMakeCall").style.visibility = "hidden";
+		 	    document.getElementById("resultmakeCall").innerHTML = ""; 
+		 	    document.getElementById("resultrefCall").innerHTML="";
+		 }
+	  }
+	}
+ 
+  var list = document.getElementById('LoginList');
+	getDevice.open("GET", serverUrl + "1.0/users/"+list.options[ list.selectedIndex ].value+"/devices");
+	getDevice.setRequestHeader('Content-Type', "application/json"); 
+	getDevice.setRequestHeader('Accept', "*/*"); 
+  getDevice.send();
+}
+
+function makeCall() {
+	var telephonyRq = new XMLHttpRequest();
+	var getDevice = new XMLHttpRequest();
+	var list = document.getElementById('DeviceList');
+	var called=document.getElementById('CalledDevice').value;
+	var calling=list.options[ list.selectedIndex ].value;
+	var answerlist = document.getElementById('autoAnswerList'); 
+	var autoanswervalue = answerlist.options[ answerlist.selectedIndex ].value;
+	var makeCallReqParams = {
+		   "deviceId": calling,
+		   "callee": called,
+		   "autoAnswer": autoanswervalue
+	}
+  
+   telephonyRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultmakeCall").innerHTML = "returns " + this.status; 
+		 if (this.status === 201) {
+		 	  var ref = this.getResponseHeader('Location');
+		 	  callRef= ref.substring(ref.lastIndexOf("/")+1);
+		 	  document.getElementById("resultrefCall").innerHTML ="Call reference:"+callRef;
+		 	  document.getElementById("clickGetInfoCall").style.visibility = "visible";		
+		 	  document.getElementById("clickHoldCall").style.visibility = "visible";
+		 	  document.getElementById("clickAnswerCall").style.visibility = "visible";
+		 	  document.getElementById("clickReleaseCall").style.visibility = "visible";
+		 	  
+		 	  var select3 =  document.getElementById('deviceAnswerSelect');
+				select3.innerHTML = "";
+				var opt = document.createElement('option');
+    		opt.value = calling;
+    		opt.innerHTML = calling;
+    		select3.appendChild(opt);
+    		var opt2 = document.createElement('option');
+    		opt2.value = called;
+    		opt2.innerHTML = called;
+    		select3.appendChild(opt2);
+					
+				var select2 = document.getElementById('deviceHoldList');
+		 	  select2.innerHTML = "";
+		 	  var opt3 = document.createElement('option');
+    		opt3.value = calling;
+    		opt3.innerHTML = calling;
+		 	  select2.appendChild(opt3);
+		 	  var opt4 = document.createElement('option');
+    		opt4.value = called;
+    		opt4.innerHTML = called;
+		 	  select2.appendChild(opt4);
+		 	  //set selcted login in get call info section
+		 	  var selectInfo =  document.getElementById('LoginList2');
+		 	  var selectedInfo = document.getElementById('LoginList');
+		 	  var selectedInfoValue=selectedInfo.options[ selectedInfo.selectedIndex ].value;
+		 	  for(var i=0 ; i<selectInfo.options.length; i++)
+						{
+							  var selectInfoValue = selectInfo.options[i].value;
+							  if(selectInfoValue===selectedInfoValue)
+    						{
+    								selectInfo.selectedIndex = i;
+    								break;
+    						}
+    						
+						}
+		 	  getCall();
+		 	  		 	  
+		 	}
+		 	else{
+		 		document.getElementById("clickGetInfoCall").style.visibility = "hidden";
+		 		document.getElementById("clickHoldCall").style.visibility = "hidden";
+		 		document.getElementById("clickAnswerCall").style.visibility = "hidden";
+		 	  document.getElementById("clickReleaseCall").style.visibility = "hidden";
+		 	  document.getElementById("resultrefCall").innerHTML="";
+		 	}
+		 	document.getElementById("resultGetInfoCall").innerHTML = ""; 
+		 	document.getElementById("infoGetInfoCall").innerHTML = "";
+		 	document.getElementById("resultHoldCall").innerHTML = "";
+		 	document.getElementById("resultRetrieveCall").innerHTML = "";
+		 	document.getElementById("resultReleaseCall").innerHTML = "";  
+		 	document.getElementById("resultAnswerCall").innerHTML = "";
+	  }
+	}
+  
+	telephonyRq.open("POST", serverUrl + "1.0/telephony/calls");//calls
+	telephonyRq.setRequestHeader('Content-Type', "application/json"); 
+	telephonyRq.setRequestHeader('Accept', "*/*"); 
+	
+	telephonyRq.send(JSON.stringify(makeCallReqParams));
+}
+function holdCall() {
+	var telephonyHc = new XMLHttpRequest();
+	var list = document.getElementById('DeviceList');
+	var calling=list.options[ list.selectedIndex ].value;
+	var called=document.getElementById('CalledDevice').value;
+	
+	var deviceHoldList = document.getElementById('deviceHoldList'); 
+	var deviceHold=deviceHoldList.options[ deviceHoldList.selectedIndex ].value; 
+	
+	var holdRequestParams = {
+		   "deviceId": deviceHold     
+	}
+  
+   telephonyHc.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultHoldCall").innerHTML = "returns " + this.status; 
+		 if (this.status === 204) {
+		 	getCall();
+		}
+	  }
+	}
+ 
+	telephonyHc.open("POST", serverUrl + "1.0/telephony/calls/"+callRef+"/hold");
+	telephonyHc.setRequestHeader('Content-Type', "application/json"); 
+	
+	telephonyHc.send(JSON.stringify(holdRequestParams));
+}
+function retrieveCall() {
+	var telephonyHc = new XMLHttpRequest();
+	var list = document.getElementById('DeviceList');
+	var calling=list.options[ list.selectedIndex ].value;
+	var called=document.getElementById('CalledDevice').value;
+	
+	var deviceHoldList = document.getElementById('deviceHoldList'); 
+	var deviceHold=deviceHoldList.options[ deviceHoldList.selectedIndex ].value; 
+	
+	var retrieveRequestParams = {
+		   "deviceId": deviceHold     
+	}
+  
+   telephonyHc.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultRetrieveCall").innerHTML = "returns " + this.status; 
+		 if (this.status === 204) {
+		 	getCall();
+		}
+	  }
+	}
+ 
+	telephonyHc.open("POST", serverUrl + "1.0/telephony/calls/"+callRef+"/retrieve");
+	telephonyHc.setRequestHeader('Content-Type', "application/json"); 
+	
+	telephonyHc.send(JSON.stringify(retrieveRequestParams));
+}
+function getCall() {
+	var telephonyGc = new XMLHttpRequest();
+	
+	 telephonyGc.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultGetInfoCall").innerHTML = "returns " + this.status; 
+		 
+		 //
+		 var jsonResponse = JSON.parse(this.responseText);
+		 		var calls = jsonResponse.calls;
+		 		if(	calls != undefined && calls.length >0)
+				{
+					
+					for (var i=0; i<calls.length; i++){
+					     var callR = calls[i].callRef;
+					     if(i == 0){//if(callR == callRef){
+					     		var state = calls[i].callData.state;
+					     		 
+					     		 document.getElementById("infoGetInfoCall").innerHTML = "Call ref:" + callRef+", Call state:<span style='color:orange;'>" + state+"</span>"; 
+					     		 break;
+					     }
+					}
+				}
+		 //
+	  }
+	}
+	var list = document.getElementById('LoginList2');
+  var callingLogin=list.options[ list.selectedIndex ].value;
+	telephonyGc.open("GET", serverUrl + "1.0/telephony/calls?loginName="+callingLogin);
+	
+	telephonyGc.send();
+}
+
+
+function answerCall() {
+	var telephonyAc = new XMLHttpRequest();
+	var list = document.getElementById('DeviceList');
+	var calling=list.options[ list.selectedIndex ].value;
+	var called=document.getElementById('CalledDevice').value;
+		var listLogin = document.getElementById('LoginList');
+  var callingLogin=listLogin.options[ listLogin.selectedIndex ].value;
+	var deviceAnswerlist = document.getElementById('deviceAnswerSelect'); 
+	var deviceAnswer=deviceAnswerlist.options[ deviceAnswerlist.selectedIndex ].value;
+	var answerRequestParams = {
+		   "deviceId": deviceAnswer 
+	}
+  
+   telephonyAc.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultAnswerCall").innerHTML = "returns " + this.status; 
+		 if (this.status === 204) {
+		 	getCall();
+		}
+	  }
+	}
+ 
+	telephonyAc.open("POST", serverUrl + "1.0/telephony/calls/"+callRef+"/answer");
+	telephonyAc.setRequestHeader('Content-Type', "application/json"); 
+	
+	telephonyAc.send(JSON.stringify(answerRequestParams));
+}
+
+function releaseCall() {
+	var telephonyRc = new XMLHttpRequest();
+	var list = document.getElementById('DeviceList');
+	var called=document.getElementById('CalledDevice').value;
+	var calling=list.options[ list.selectedIndex ].value;
+	
+	
+  
+   telephonyRc.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultReleaseCall").innerHTML = "returns " + this.status; 
+		  if (this.status === 204) {
+		 	  
+		 	  document.getElementById("resultrefCall").innerHTML ="";
+		 	  document.getElementById("resultGetInfoCall").innerHTML = "";
+		 	  document.getElementById("infoGetInfoCall").innerHTML = "";
+		 	  getCall();		 
+		 	}
+		 
+	  }
+	}
+  var listLogin = document.getElementById('LoginList');
+  var callingLogin=listLogin.options[ listLogin.selectedIndex ].value	;
+	var makeCallReqParams = {
+		  "loginName":callingLogin
+	}
+  
+	telephonyRc.open("DELETE", serverUrl + "1.0/telephony/calls/"+callRef+"?loginName="+callingLogin);
+	telephonyRc.setRequestHeader('Content-Type', "application/json"); 
+	telephonyRc.setRequestHeader('deviceId', calling); 
+//	var listLogin = document.getElementById('LoginList');
+	//telephonyRc.setRequestHeader('loginName', listLogin.options[ listLogin.selectedIndex ].value); 
+	
+	telephonyRc.send();//JSON.stringify(makeCallReqParams)
+}
+function closeSession() {
+	var sessionCloseRq = new XMLHttpRequest();
+    sessionCloseRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultCloseSession").innerHTML = "returns " + this.status; 
+		 //document.getElementById("clickStartSession").style.visibility = "hidden";
+		 document.getElementById("clickGetLogin").style.visibility = "hidden";
+		 document.getElementById("clickGetDevice").style.visibility = "hidden";
+		 document.getElementById("clickMakeCall").style.visibility = "hidden";
+		 document.getElementById("resultAuthent").innerHTML = ""; 
+		 document.getElementById("clickGetInfoCall").style.visibility = "hidden";
+		 document.getElementById("clickHoldCall").style.visibility = "hidden";
+		 document.getElementById("clickAnswerCall").style.visibility = "hidden";
+		 document.getElementById("clickReleaseCall").style.visibility = "hidden";
+	  }
+	}
+	sessionCloseRq.open("DELETE", serverUrl + "1.0/sessions");
+	sessionCloseRq.send();
+}
+</script>
+</head>
+<body>
+<h2>Example of Call control on a java script server</h2>
+
+<br><br><br>
+
+
+
+<FORM>
+    <P>
+    <LABEL for="serverIP">Server address </LABEL>
+               <select id="protocol" name="protocol" type="text" style="width: 80px">       
+               	<option value="https://"> 
+               		https://
+               	</option>
+               	<option value="http://"> 
+               		http://
+               	</option> 				
+       				</select>
+              <INPUT type="text" id="ServerIP" value = "">
+              <INPUT type="port" id="port" value = "" style="width: 80px"><BR>
+    <LABEL for="adminlogin">Admin login name </LABEL>
+              <INPUT type="text" id="Adminlogin" value = "">  <BR>
+    <LABEL for="password">Admin password </LABEL>
+              <INPUT type="password" id="Password" value = ""><BR>
+    <LABEL for="loginList">Login List</LABEL>
+              <select id="LoginList" name="LoginListName" type="text" style="width: 150px">        				
+       				</select><BR>
+    <LABEL for="deviceList">Device List (Calling)</LABEL>
+               <select id="DeviceList" name="DeviceListName" type="text" style="width: 180px">        				
+       				</select><BR>
+   <LABEL for="calledDevice">Called Device</LABEL>
+              <INPUT type="text" id="CalledDevice" value = "19160"><BR>
+   
+       </P>
+ </FORM>
+    
+<div>
+ <button  onclick="doAuthent()">Authenticate
+ <div id="resultAuthent"> </div>
+ </button> 
+ </div>
+ 
+ <div>
+ <button  id="clickStartSession" onclick="startSession()" style="visibility:hidden">Start Session
+ <div id="resultSession"> </div>
+ </button>
+
+ <button  id="clickCloseSession" onclick="closeSession()" style="visibility:hidden">Close Session
+<div id="resultCloseSession"> </div>
+ </button> 
+ </div>
+
+ <div id="clickGetLogin" style="visibility:hidden;">
+ <button  onclick="getLoginList()">Get Logins List
+ <div id="resultGetLogin"> </div>
+ </button> 
+ </div>
+ 
+ <div id="clickGetDevice" style="visibility:hidden;">
+ <button  onclick="getDeviceList()">Get Device List
+ <div id="resultGetDevice"> </div>
+ </button> 
+ </div>
+<br><br>
+ 
+ <div id="clickMakeCall" style="visibility:hidden;">
+ 	<h3 style="color:orange;">MakeCall</h3>
+ <LABEL for="autoanswer">autoAnswer</LABEL>
+ <select id="autoAnswerList" name="autoAnswerList" type="text" style="width: 80px">  
+ 		<option value="true"> 
+               		true
+  	</option>
+  	<option value="false"> 
+               		false
+  	</option>      				
+ </select>
+ <button  onclick="makeCall()">Make Call
+ <div id="resultmakeCall"> </div>
+ </button> 
+ <div id="resultrefCall"></div>
+ </div>
+ 
+  <br>
+ <div id="clickGetInfoCall" style="visibility:hidden;">
+ <h3 style="color:orange;">Get Call Information</h3>
+ <LABEL for="loginList">Login List</LABEL>
+ <select id="LoginList2" name="LoginListName2" type="text" style="width: 150px">        				
+       				</select>
+ <button  onclick="getCall()">Get Call Info
+ <div id="resultGetInfoCall"> </div>
+ </button> 
+ <div id="infoGetInfoCall"></div>
+ </div>
+  <br>
+  
+
+ <div id="clickAnswerCall" style="visibility:hidden;">
+ 	<h3 style="color:orange;">Answer Call</h3>
+ 	<LABEL for="deviceAnswerId">Device Id List</LABEL>
+ <select id="deviceAnswerSelect" name="deviceAnswerSelect" type="text" style="width: 100px">        				
+       				</select>
+ <button  onclick="answerCall()">Answer Call
+ <div id="resultAnswerCall"> </div>
+ </button> 
+ </div>
+ <br>
+  <div id="clickHoldCall" style="visibility:hidden;">
+ <h3 style="color:orange;">Hold & Retrieve Call</h3>
+ <LABEL for="deviceHoldId">Device Id List</LABEL>
+ <select id="deviceHoldList" name="deviceHoldList" type="text" style="width: 100px">        				
+       				</select>
+ <button  onclick="holdCall()">Hold Call
+ <div id="resultHoldCall"> </div>
+ </button> 
+ <button  onclick="retrieveCall()">Retrieve Call
+ <div id="resultRetrieveCall"> </div>
+ </button> 
+ </div>
+ 
+ <br>
+ <div id="clickReleaseCall" style="visibility:hidden;">
+ 	<h3 style="color:orange;">Release Call</h3>
+ <button  onclick="releaseCall()">Release Call
+ <div id="resultReleaseCall"> </div>
+ </button> 
+ </div>
+ <br>
+
+
+
+</body>
+</html> 
