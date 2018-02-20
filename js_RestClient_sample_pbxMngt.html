@@ -1,0 +1,317 @@
+<html>
+<head>
+<script>
+ var serverIP;
+ var adminlogin;
+ var passwd;
+ var nodeId;
+ var subscriber;
+ var subscriberName;
+ var subscriberFirstName;
+ var alcUserId="";
+function doAuthent()
+{
+ 
+  serverIP =  document.getElementById('ServerIP').value;
+  adminlogin =  document.getElementById('Adminlogin').value;
+  passwd =  document.getElementById('Password').value;
+ 
+	authRq = new XMLHttpRequest();
+	serverUrl = "https://"+serverIP+":80/api/rest/"; 		
+
+	 authRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultAuthent").innerHTML = "returns " + this.status; 
+		 if (this.status === 200) {
+			document.getElementById("clickStartSession").style.visibility = "visible";
+			document.getElementById("resultSession").innerHTML = ""; 
+		}
+	  }
+	};
+  authRq.open("GET", serverUrl + "authenticate?version=1.0", true, adminlogin, passwd);
+	authRq.withCredentials = true;
+	authRq.send();		
+}
+function startSession() {
+	var sessionRq = new XMLHttpRequest();
+	var appliNameParams = {"applicationName":"myTestProgram"};
+
+    sessionRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultSession").innerHTML = "returns " + this.status;
+		 if (this.status === 200) {
+		 	document.getElementById("clickSubscribe").style.visibility = "hidden";
+		 	document.getElementById("resultsubscribtion").innerHTML = ""; 
+		 	document.getElementById("getInfo").style.visibility = "visible";
+		 	document.getElementById("resultGetInfo").innerHTML = ""; 
+		 	document.getElementById("clickMSubscribe").style.visibility = "hidden";
+			document.getElementById("resultMsubscribtion").innerHTML = ""; 
+			document.getElementById("clickDSubscribe").style.visibility = "hidden";
+			document.getElementById("resultDsubscribtion").innerHTML = ""; 
+			document.getElementById("clickCloseSession").style.visibility = "visible";
+			document.getElementById("resultCloseSession").innerHTML = "";
+			//getListPbxs();
+		 } else if (this.status === 403) {
+		 	document.getElementById("clickSubscribe").style.visibility = "hidden";
+		 	document.getElementById("resultsubscribtion").innerHTML = ""; 
+		 	document.getElementById("getInfo").style.visibility = "hidden";
+		 	document.getElementById("resultGetInfo").innerHTML = ""; 
+		 	document.getElementById("clickMSubscribe").style.visibility = "hidden";
+			document.getElementById("resultMsubscribtion").innerHTML = "";
+			document.getElementById("clickDSubscribe").style.visibility = "hidden";
+			document.getElementById("resultDsubscribtion").innerHTML = "";
+			document.getElementById("clickCloseSession").style.visibility = "visible";
+			document.getElementById("resultCloseSession").innerHTML = "";
+		 }
+	  }
+	}
+
+	sessionRq.open("POST", serverUrl + "1.0/sessions");
+	sessionRq.setRequestHeader('Content-Type', "application/json"); 
+	sessionRq.setRequestHeader('Accept', "*/*"); 
+	sessionRq.send(JSON.stringify(appliNameParams));
+}
+function getListPbxs() {
+	var getInf = new XMLHttpRequest();
+	
+
+    getInf.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 //document.getElementById("resultSession").innerHTML = "returns " + this.status;
+		 if (this.status === 200) {
+		 		//alert( "success"+ this.responseText);
+		 		var jsonResponse = JSON.parse(this.responseText);
+		 		var nodeList = jsonResponse.nodeIds;
+		 		if(	nodeList != undefined && nodeList.length >0)
+				{
+					var select =  document.getElementById('NodeId');
+					for(var i in nodeList)
+						{
+							  var opt = document.createElement('option');
+    						opt.value = nodeList[i];
+    						opt.innerHTML = nodeList[i];
+    						select.appendChild(opt);
+						}
+				}
+				document.getElementById("clickSubscribe").style.visibility = "visible";
+		 		document.getElementById("resultsubscribtion").innerHTML = ""; 
+		 		document.getElementById("clickMSubscribe").style.visibility = "hidden";
+				document.getElementById("resultMsubscribtion").innerHTML = ""; 
+				document.getElementById("clickDSubscribe").style.visibility = "hidden";
+				document.getElementById("resultDsubscribtion").innerHTML = ""; 
+				document.getElementById("clickCloseSession").style.visibility = "visible";
+				document.getElementById("resultCloseSession").innerHTML = "";
+		 } else if (this.status === 403) {
+		 		document.getElementById("clickSubscribe").style.visibility = "hidden";
+		 		document.getElementById("resultsubscribtion").innerHTML = ""; 
+		 		document.getElementById("clickMSubscribe").style.visibility = "hidden";
+				document.getElementById("resultMsubscribtion").innerHTML = "";
+				document.getElementById("clickDSubscribe").style.visibility = "hidden";
+				document.getElementById("resultDsubscribtion").innerHTML = "";
+				document.getElementById("clickCloseSession").style.visibility = "visible";
+				document.getElementById("resultCloseSession").innerHTML = "";
+		 }
+	  }
+	}
+ 
+	getInf.open("GET", serverUrl + "1.0/pbxs");
+	getInf.setRequestHeader('Content-Type', "application/json"); 
+	getInf.setRequestHeader('Accept', "*/*"); 
+  getInf.send();
+}
+function createSubscriber() {
+	 nodeId =  document.getElementById('NodeId').value;
+  subscriber =  document.getElementById('Subscriber').value;
+  subscriberName =  document.getElementById('SubscriberName').value;
+  subscriberFirstName =  document.getElementById('SubscriberFirstName').value;
+	var createSubscriberRq = new XMLHttpRequest();
+	
+
+    createSubscriberRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultsubscribtion").innerHTML = "returns " + this.status;
+		 if (this.status === 201) {
+		 	
+		 	document.getElementById("clickMSubscribe").style.visibility = "visible";
+			document.getElementById("resultMsubscribtion").innerHTML = ""; 
+			document.getElementById("clickDSubscribe").style.visibility = "visible";
+			document.getElementById("resultDsubscribtion").innerHTML = "";
+			document.getElementById("clickCloseSession").style.visibility = "visible";
+			document.getElementById("resultCloseSession").innerHTML = "";
+		 } else if (this.status === 403) {
+		 	
+		 	document.getElementById("clickMSubscribe").style.visibility = "hidden";
+			document.getElementById("resultMsubscribtion").innerHTML = "";
+			document.getElementById("clickDSubscribe").style.visibility = "hidden";
+			document.getElementById("resultDsubscribtion").innerHTML = "";
+			document.getElementById("clickCloseSession").style.visibility = "visible";
+			document.getElementById("resultCloseSession").innerHTML = "";
+		 }
+	  }
+	}
+  var appliNameParams = {"attributes": [{"name": "Directory_Number",
+  																			 "value": [ subscriber ]
+  																			 },
+  																			 {"name": "Annu_First_Name",
+  																			 	"value":  [ subscriberFirstName ]
+  																			 },
+  																			 {"name": "Annu_Name",
+  																			 	"value":  [ subscriberName ]
+  																			 	},
+  																			 {"name": "Station_Type",
+  																			  "value":["NOE_C_IP"]
+  																			 	}
+  																		]
+  											};                                                               
+	
+	
+	createSubscriberRq.open("POST", serverUrl + "1.0/pbxs/" +nodeId + "/instances/Subscriber");
+	createSubscriberRq.setRequestHeader('Content-Type', "application/json"); 
+	createSubscriberRq.setRequestHeader('Accept', "*/*"); 
+	createSubscriberRq.send(JSON.stringify(appliNameParams));
+}
+function modifySubscriber() {
+	 nodeId =  document.getElementById('NodeId').value;
+  subscriber =  document.getElementById('Subscriber').value;
+  subscriberName =  document.getElementById('SubscriberName').value;
+  subscriberFirstName =  document.getElementById('SubscriberFirstName').value;
+	var modifySubscriberRq = new XMLHttpRequest();
+	
+
+    modifySubscriberRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultMsubscribtion").innerHTML = "returns " + this.status;
+		 
+	  }
+	}
+
+  var appliNameParams = {"attributes": [{"name": "Facility_Category_Id",
+  																			 "value": [ "1" ]}]
+  											};                                                               
+	
+	
+	modifySubscriberRq.open("PUT", serverUrl + "1.0/pbxs/" +nodeId + "/instances/Subscriber/"+subscriber);
+	modifySubscriberRq.setRequestHeader('Content-Type', "application/json"); 
+	modifySubscriberRq.setRequestHeader('Accept', "*/*"); 
+	modifySubscriberRq.send(JSON.stringify(appliNameParams));
+}
+function deleteSubscriber() {
+	 nodeId =  document.getElementById('NodeId').value;
+  subscriber =  document.getElementById('Subscriber').value;
+  subscriberName =  document.getElementById('SubscriberName').value;
+  subscriberFirstName =  document.getElementById('SubscriberFirstName').value;
+	var deleteSubscriberRq = new XMLHttpRequest();
+	
+
+    deleteSubscriberRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultDsubscribtion").innerHTML = "returns " + this.status;
+		 
+	  }
+	}
+
+  var appliNameParams = {"attributes": [{"name": "Facility_Category_Id",
+  																			 "value": [ "1" ]}]
+  											};                                                               
+	
+	
+	deleteSubscriberRq.open("DELETE", serverUrl + "1.0/pbxs/" +nodeId + "/instances/Subscriber/"+subscriber);
+	deleteSubscriberRq.setRequestHeader('Content-Type', "application/json"); 
+	deleteSubscriberRq.setRequestHeader('Accept', "*/*"); 
+	deleteSubscriberRq.send();
+}
+function closeSession() {
+	var sessionCloseRq = new XMLHttpRequest();
+    sessionCloseRq.onreadystatechange = function() {
+	  if (this.readyState === XMLHttpRequest.DONE) {
+		 document.getElementById("resultCloseSession").innerHTML = "returns " + this.status; 
+		 document.getElementById("clickStartSession").style.visibility = "hidden";
+		 document.getElementById("clickCloseSession").style.visibility = "hidden";
+		 document.getElementById("clickSubscribe").style.visibility = "hidden";
+		 document.getElementById("clickMSubscribe").style.visibility = "hidden";
+		 document.getElementById("clickDSubscribe").style.visibility = "hidden";
+		 document.getElementById("getInfo").style.visibility = "hidden";
+		 document.getElementById("resultAuthent").innerHTML = ""; 
+	  }
+	}
+	sessionCloseRq.open("DELETE", serverUrl + "1.0/sessions");
+	sessionCloseRq.send();
+}
+</script>
+</head>
+<body>
+<h2> This is an example of subscriber creation on a java script server</h2>
+<ul>
+<li> preliminary, enter the server address, the admin user login, its password, the subscriberNumber device to create, the pbx node number </li>
+<li> the subscriber Name and first Nome </li>
+<li> then click to authenticate the user, to start the session (thanks to the returned cookie)and send the susbscriber creation request</li>
+</ul>
+
+
+
+
+<FORM>
+    <P>
+    <LABEL for="serverIP">Server address </LABEL>
+              <INPUT type="text" id="ServerIP" value = ""> <BR>
+    <LABEL for="adminlogin">Admin login name </LABEL>
+              <INPUT type="text" id="Adminlogin" value = "">  <BR>
+    <LABEL for="password">Admin password </LABEL>
+              <INPUT type="password" id="Password" value = ""><BR>
+    <LABEL for="nodeId">Pbx node identifier </LABEL>
+              <select id="NodeId" name="NodeId" type="text" style="width: 150px">
+        				</select><BR>
+    <LABEL for="subscriber">Subscriber number to create</LABEL>
+              <INPUT type="text" id="Subscriber" value = ""><BR>
+   <LABEL for="subscriberName">Subscriber Name</LABEL>
+              <INPUT type="text" id="SubscriberName" value = "UserName"><BR>
+   <LABEL for="subscriberFirstName">Subscriber First Name</LABEL>
+              <INPUT type="text" id="SubscriberFirstName" value = "UserFirstName"><BR>
+  
+    
+    </P>
+ </FORM>
+ <button  onclick="doAuthent()">Authenticate
+ <div id="resultAuthent"> </div>
+ </button> 
+ 
+ <div id="clickStartSession"  style="visibility:hidden;">
+ <button  onclick="startSession()">Start Session
+ <div id="resultSession"> </div>
+ </button>
+ </div>
+ 
+  <div id="getInfo" style="visibility:hidden;">
+ <button  onclick="getListPbxs()">Get Pbx Node List
+<div id="resultGetInfo"> </div>
+ </button> 
+ </div>
+ 
+ <div id="clickSubscribe" style="visibility:hidden;">
+ <button  onclick="createSubscriber()">Start subscription
+ <div id="resultsubscribtion"> </div>
+ </button> 
+ </div>
+ 
+ <div id="clickMSubscribe" style="visibility:hidden;">
+ <button  onclick="modifySubscriber()">Modify subscription
+ <div id="resultMsubscribtion"> </div>
+ </button> 
+ </div>
+ 
+ <div id="clickDSubscribe" style="visibility:hidden;">
+ <button  onclick="deleteSubscriber()">Delete subscription
+ <div id="resultDsubscribtion"> </div>
+ </button> 
+ </div>
+ 
+<div id="clickCloseSession" style="visibility:hidden;">
+ <button  onclick="closeSession()">Close Session
+<div id="resultCloseSession"> </div>
+ </button> 
+ </div>
+ 
+
+ 
+</body>
+</html> 
