@@ -1,0 +1,132 @@
+<html>
+<head>
+
+<script src="js/jquery-2.2.4.min.js"></script>
+<link rel="stylesheet" href="js/jquery.mobile-1.3.2.min.css" />
+<script src="js/js_RoutingMngt.js"></script>
+
+</head>
+<body  class="ui-overlay-c ui-body-c" >
+	
+<h2>Example of Routing management on a java script server</h2>
+<br><br><br>
+<FORM >
+    <P>
+    	<table >
+    		<tr>
+	    		<td>
+	    			<LABEL for="serverIP">Server address </LABEL>
+	    		</td>
+	    		<td>
+             <select id="protocol" name="protocol" type="text" style="width: 80px">       
+             	<option value="https://">https://</option>
+             	<option value="http://">http://</option> 				
+     				</select>
+            <INPUT type="text" id="ServerIP" value = "">
+            <INPUT type="text" id="port" value = "" style="width: 80px">
+	      	</td>
+      	</tr>
+      	<tr>
+	    		<td>
+	    			<LABEL for="adminlogin">Admin login name </LABEL>
+	    		</td>
+		    	<td>
+	          <INPUT type="text" id="Adminlogin" value = "">  
+	        </td>
+      	</tr>
+      	<tr>
+	    		<td>
+	    			<LABEL for="password">Admin password </LABEL>
+	    		</td>
+		    	<td>
+          	<INPUT type="password" id="Password" value = "">
+          </td>
+      	</tr>
+      	<tr>
+	    		<td>
+    				<LABEL for="loginList">Login List</LABEL>
+    			</td>
+		    	<td>
+            <select id="LoginList" name="LoginListName" type="text" style="width: 150px">        				
+       		  </select>
+       		</td>
+      	</tr>
+      	<tr>
+	    		<td>		
+    				<LABEL for="capabilityList">Capability List</LABEL>
+    			</td>
+		    	<td>
+            <select id="CapabilityList" name="CapabilityList" type="text" style="width: 150px">        				
+       			</select>
+   				</td>
+      	</tr>
+   </table>
+       </P>
+ </FORM>
+<br><br>  
+<div>
+ <button  onclick="doAuthent()" style="width: 130px">Authenticate
+ <div id="resultAuthent"> </div>
+ </button> 
+ </div>
+ <br>
+ <div>
+ <button  id="clickStartSession" onclick="startSession()" style="visibility:hidden; width: 130px">Start Session
+ <div id="resultSession"> </div>
+ </button>
+
+ <button  id="clickCloseSession" onclick="closeSession()" style="visibility:hidden; width: 130px">Close Session
+<div id="resultCloseSession"> </div>
+ </button> 
+ </div>
+<br>
+ <div id="clickGetLogin" style="visibility:hidden">
+ <button  onclick="getLoginList()" style="width: 130px">Get Logins List
+ <div id="resultGetLogin"> </div>
+ </button> 
+ </div>
+ <br>
+ <div id="clickGetCapability" style="visibility:hidden">
+ <button  onclick="getCapabilityList()" style="width: 130px">Get the capabilities
+ <div id="resultGetCapability"> </div>
+ </button> 
+ </div>
+<br>
+ <div>
+ 	<h3 id="dndTitle" style="color:orange;visibility:hidden">Do not disturb : <span id="dndStatus"></span></h3>
+ <button  id="clickActivateDnd" onclick="activateDnd()" style="visibility:hidden;width: 130px">Activate Dnd
+ <div id="resultActivateDnd"> </div>
+ </button>
+
+ <button  id="clickDeactivateDnd" onclick="deactivateDnd()" style="visibility:hidden;width: 130px">Deactivate Dnd
+ <div id="resultDeactivateDnd"> </div>
+ </button> 
+ </div>
+<br>
+ <br>
+ <div id="forwardDiv" style="visibility:hidden" >
+ 	<h3 id="forwardTitle" style="color:orange">Forward Route : <span id="forwardStatus"></span></h3>
+ 	<LABEL for="fwdTypeLabel">Forward Type</LABEL>
+ 	<select id="fwdType" name="fwdType" type="text" style="width: 120px">    
+ 		  <option value="IMMEDIATE">Immediate</option>   
+      <option value="BUSY">Busy</option>
+      <option value="NO_ANSWER">No reply</option> 	
+      <option value="BUSY_NO_ANSWER">Busy / no reply</option> 			
+  </select>
+ 	<LABEL for="fwdLabel">Forward Number</LABEL>
+ 	<INPUT type="text" id="fwdNumber" value = "" style="width: 80px">
+ 	<br><br>
+ <button  id="clickImmediateFwd" onclick="activateFwd()" style="width: 130px">Activate Forward
+ <div id="resultImmediateFwd"> </div>
+ </button>
+
+ <button  id="clickDeactivateFwd" onclick="deactivateFwd()" style="width: 140px">Deactivate Forward
+ <div id="resultDeactivateFwd"> </div>
+ </button> 
+ </div>
+ <br>
+
+
+
+</body>
+</html> 
